@@ -1,8 +1,42 @@
 import Produto from "../modelo/produto.js";
 import conectar from "./conexao.js";
 import Categoria from "../modelo/categoria.js";
+import Cliente from "../modelo/cliente.js";
+
 //Data access object
 export default class ProdutoDAO {
+
+    async getListaEspera(produto){
+        const conexao = await conectar();
+        let sql = `SELECT * FROM lista_espera WHERE le_produto_codigo = ?`;
+        let parametros = [produto.codigo];
+        let listaEspera = [];
+        const [registros, campos] = await conexao.execute(sql, parametros);
+        for(const registro of registros){
+            let cliente = new Cliente();
+            await cliente.consultar(registro.le_cliente_codigo).then((listaClientes)=>{
+                cliente = listaClientes.pop();//o que acontece se a lista estiver vazia?
+            });
+            listaEspera.push(cliente);
+        }
+        return listaEspera;
+    }
+
+    async gravarObserver(produto, codCliente){
+        const conexao = await conectar();
+        let sql = `INSERT INTO lista_espera (le_produto_codigo, le_cliente_codigo) VALUES (?,?)`;
+        let parametros = [produto.codigo, codCliente];
+        await conexao.execute(sql, parametros);
+        global.poolConexoes.releaseConnection(conexao);
+    }
+
+    async excluirObserver(produto, codCliente){
+        const conexao = await conectar();
+        let sql = `DELETE FROM lista_espera WHERE le_produto_codigo = ? AND le_cliente_codigo = ?`;
+        let parametros = [produto.codigo, codCliente];
+        await conexao.execute(sql, parametros);
+        global.poolConexoes.releaseConnection(conexao);
+    }
 
     async gravar(produto) {
         if (produto instanceof Produto) {

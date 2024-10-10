@@ -1,6 +1,54 @@
 import Produto from "../modelo/produto.js";
 
 export default class ProdutoCtrl {
+
+    async observarProduto(requisicao, resposta) {
+        resposta.type('application/json');
+        if (requisicao.method === "POST" && requisicao.is("application/json")) {
+            const dados = requisicao.body;
+            const codProduto = dados.codProduto;
+            const codCliente = dados.codCliente;
+
+            if (codProduto && codCliente) {
+                let produto = new Produto();
+                await produto.consultar(codProduto).then((listaProdutos) => {
+                    produto = listaProdutos.pop();
+                });
+                if (produto.qtdEstoque == 0) {
+                    produto.registerObserver(codCliente).then(() => {
+                        resposta.status(200).json({
+                            "status": true,
+                            "mensagem": "Cliente observando produto com sucesso!"
+                        });
+                    }).catch((erro) => {
+                        resposta.status(500).json({
+                            "status": false,
+                            "mensagem": "Erro ao observar produto: " + erro.message
+                        });
+                    });
+                }
+                else{
+                    resposta.status(400).json({
+                        "status": false,
+                        "mensagem": "Produto com estoque disponível!"
+                    });
+                }
+            }
+            else {
+                resposta.status(400).json({
+                    "status": false,
+                    "mensagem": "Informe o código do produto e do cliente para observar o produto!"
+                });
+            }
+        }
+        else {
+            resposta.status(400).json({
+                "status": false,
+                "mensagem": "Por favor, utilize o método POST para observar um produto!"
+            });
+        }
+    }
+
     gravar(requisicao, resposta) {
         resposta.type('application/json');
         if (requisicao.method === "POST" && requisicao.is("application/json")) {
@@ -119,8 +167,8 @@ export default class ProdutoCtrl {
     consultar(requisicao, resposta) {
         resposta.type("application/json");
         let termo = requisicao.params.termo;
-        if(!termo){
-            termo= "";
+        if (!termo) {
+            termo = "";
         }
         if (requisicao.method === "GET") {
             const prod = new Produto();

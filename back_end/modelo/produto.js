@@ -1,6 +1,7 @@
 import ProdutoDAO from "../persistencia/produtoDAO.js";
+import InterfaceSubject from "./interfaceSubject.js";
 
-export default class Produto{
+export default class Produto extends InterfaceSubject{
     #codigo;
     #nome;
     #descricao;
@@ -9,8 +10,32 @@ export default class Produto{
     #dataValidade;
     #qtdEstoque;
     #categoria;
+    #listaObserver;//lista de clientes observadores
+
+    async registerObserver(codCliente){
+        //adicionar na lista
+        const prodDAO = new ProdutoDAO();
+        await prodDAO.gravarObserver(this, codCliente);
+    }
+
+    async removeObserver(codCliente){
+        //remover da lista
+        const prodDAO = new ProdutoDAO();
+        await prodDAO.excluirObserver(this, codCliente);
+    }
+
+    async notifyObserver(){
+        //notificar puxa a lista
+        const prodDAO = new ProdutoDAO();
+        this.#listaObserver = await prodDAO.getListaEspera(this);
+        //repeticao na lista pra notificar observadores quando estoque alterar
+        for(let observer of this.#listaObserver){
+            observer.update();
+        }
+    }
 
     constructor(codigo=0, nome='', descricao='', precoCusto=0, precoVenda=0, dataValidade='', qtdEstoque=0, categoria={}){
+        super();
         this.#codigo = codigo;
         this.#nome= nome;
         this.#descricao = descricao;
@@ -102,6 +127,9 @@ export default class Produto{
     async atualizar(){
         const prodDAO= new ProdutoDAO();
         await prodDAO.atualizar(this);
+        if(parseInt(this.#qtdEstoque) > 0){
+            this.notifyObserver();
+        }
     }
 
     async excluir(){
@@ -112,6 +140,11 @@ export default class Produto{
     async consultar(termo){
         const prodDAO= new ProdutoDAO();
         return await prodDAO.consultar(termo);
+    }
+
+    async consultaListaEspera(){
+        const prodDAO = new ProdutoDAO();
+        this.#listaObserver = await prodDAO.getListaEspera(this);
     }
 }
 //Codeium

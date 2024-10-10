@@ -1,6 +1,7 @@
 import ClienteDAO from "../persistencia/clienteDAO.js";
+import InterfaceObserver from "./interfaceObserver.js";
 
-export default class Cliente {
+export default class Cliente extends InterfaceObserver{
     #codigo;
     #cpf;
     #nome;
@@ -11,7 +12,14 @@ export default class Cliente {
     #uf;
     #cep;
 
+    update(){//metodo da interface observer
+        //método update permite ao observador realizar as mudancas necessarias quando for avisado pelo sujeito
+        //fazer algo aqui???
+        console.log(`Cliente ${this.#nome} notificado!`);
+    }
+
     constructor(codigo = 0, cpf = '', nome = '', endereco = '', bairro = '', numero = '', cidade = '', uf = '', cep = '') {
+        super();
         this.#codigo = codigo;
         this.#cpf = cpf;
         this.#nome = nome;

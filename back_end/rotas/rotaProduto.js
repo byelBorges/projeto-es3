@@ -6,6 +6,7 @@ const rotaProduto = new Router();
 
 rotaProduto.get('/', prodCtrl.consultar)
 .get('/:termo', prodCtrl.consultar)
+.post('/observar', prodCtrl.observarProduto)
 .post('/', prodCtrl.gravar)
 .patch('/', prodCtrl.atualizar)
 .put('/', prodCtrl.atualizar)
