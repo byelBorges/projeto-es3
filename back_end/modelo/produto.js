@@ -31,7 +31,7 @@ export default class Produto extends InterfaceSubject{
         //repeticao na lista pra notificar observadores quando estoque alterar
         for(let observer of this.#listaObserver){
             observer.update();
-            //this.removeObserver(observer.codigo);
+            this.removeObserver(observer.codigo);
         }
     }
 
